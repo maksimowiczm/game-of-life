@@ -1,22 +1,23 @@
 #pragma once
+#include <stddef.h>
 
 enum InitType { RANDOM, PLUS, MIGRATE, HALF_PLUS };
 
-bool* initBoard(int N, enum InitType type);
-void evaluateRow(
+bool* init_board(size_t size, enum InitType type);
+void evaluate_row(
     const bool* row,
     const bool* prevRow,
     const bool* nextRow,
-    int N,
+    size_t size,
     bool* futureRow
 );
-void WritePGM(const char* fileName, int width, int height, const bool* board);
+void write_pgm(const char* fileName, int width, int height, const bool* board);
 void parse_args(
     int argc,
     char* argv[],
-    int* N,
+    int* size,
     int* iterations,
     int* type,
     int* isVerbose
 );
-void print(bool* board, int N, int number);
+void print(const bool* board, size_t size, int number);

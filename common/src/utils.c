@@ -5,18 +5,18 @@
 #include <sys/types.h>
 #include <time.h>
 
-void evaluateRow(
+void evaluate_row(
     const bool* row,
     const bool* prevRow,
     const bool* nextRow,
-    int N,
+    size_t size,
     bool* futureRow
 ) {
-  for (int column = 0; column < N; column++) {
+  for (int column = 0; column < size; column++) {
     int count = 0;
     for (int offset = -1; offset <= 1; offset++) {
       int newColumn = column + offset;
-      if (newColumn < 0 || newColumn >= N) {
+      if (newColumn < 0 || newColumn >= size) {
         continue;
       }
       if (prevRow && prevRow[newColumn]) {
@@ -40,7 +40,7 @@ void evaluateRow(
   }
 }
 
-void WritePGM(const char* fileName, int width, int height, const bool* board) {
+void write_pgm(const char* fileName, int width, int height, const bool* board) {
   FILE* file = fopen(fileName, "wb");
   if (file == NULL) {
     printf("Unable to open file %s\n", fileName);
@@ -66,8 +66,8 @@ void WritePGM(const char* fileName, int width, int height, const bool* board) {
   fclose(file);
 }
 
-bool* initBoard(int N, enum InitType type) {
-  bool* board = (bool*)malloc(N * N * sizeof(bool));
+bool* init_board(size_t size, enum InitType type) {
+  bool* board = (bool*)malloc(size * size * sizeof(bool));
   if (board == NULL) {
     printf("Memory allocation failed\n");
     exit(1);
@@ -75,7 +75,7 @@ bool* initBoard(int N, enum InitType type) {
 
   if (type == RANDOM) {
     srand(time(NULL));
-    for (int i = 0; i < N * N; i++) {
+    for (int i = 0; i < size * size; i++) {
       double r = (double)rand() / RAND_MAX;
       if (r < 0.15) {
         board[i] = true;
@@ -84,22 +84,22 @@ bool* initBoard(int N, enum InitType type) {
       }
     }
   } else if (type == MIGRATE) {
-    for (int i = 0; i < N * N; i++) {
+    for (int i = 0; i < size * size; i++) {
       board[i] = false;
     }
-    board[1 * N + 1] = true;
-    board[2 * N + 2] = true;
-    board[3 * N + 0] = true;
-    board[3 * N + 1] = true;
-    board[3 * N + 2] = true;
+    board[1 * size + 1] = true;
+    board[2 * size + 2] = true;
+    board[3 * size + 0] = true;
+    board[3 * size + 1] = true;
+    board[3 * size + 2] = true;
   } else if (type == HALF_PLUS) {
-    for (int i = 0; i < N * N; i++) {
+    for (int i = 0; i < size * size; i++) {
       board[i] = false;
     }
-    board[(N / 2) * N + N / 2] = true;
-    board[(N / 2) * N + 1 + N / 2] = true;
-    board[(N / 2 + 1) * N + N / 2] = true;
-    board[(N / 2 - 1) * N + N / 2] = true;
+    board[(size / 2) * size + size / 2] = true;
+    board[(size / 2) * size + 1 + size / 2] = true;
+    board[(size / 2 + 1) * size + size / 2] = true;
+    board[(size / 2 - 1) * size + size / 2] = true;
   }
 
   return board;
@@ -108,18 +108,18 @@ bool* initBoard(int N, enum InitType type) {
 void parse_args(
     int argc,
     char* argv[],
-    int* N,
+    int* size,
     int* iterations,
     int* type,
     int* isVerbose
 ) {
-  *N = 15;
+  *size = 15;
   *iterations = 100;
   *type = HALF_PLUS;
   *isVerbose = 1;
 
   if (argc > 1) {
-    *N = atoi(argv[1]);
+    *size = atoi(argv[1]);
   }
   if (argc > 2) {
     *iterations = atoi(argv[2]);
@@ -132,9 +132,9 @@ void parse_args(
   }
 }
 
-void print(bool* board, int N, int number) {
+void print(const bool* board, size_t size, int number) {
   char fileName[50];
   mkdir("./images/", 0777);
   sprintf(fileName, "./images/life%d.pgm", number);
-  WritePGM(fileName, N, N, board);
+  write_pgm(fileName, size, size, board);
 }
