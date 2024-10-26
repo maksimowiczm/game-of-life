@@ -6,6 +6,7 @@ set(CMAKE_C_STANDARD 23)
 add_library(${PROJECT_NAME}
         src/hello.c
         src/board.c
+        src/utils.c
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
