@@ -1,13 +1,18 @@
 #include <game_of_life/board.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 Board *board_create(const size_t width, const size_t height) {
   if (width == 0 || height == 0) {
+#if DEBUG
+    fprintf(stderr, "Invalid board size: %zu x %zu\n", height, width);
+#endif
+
     return nullptr;
   }
 
   const auto board = (Board *)malloc(sizeof(Board));
-  const auto cells = (bool *)malloc(width * height * sizeof(bool));
+  const auto cells = (Cell *)malloc(width * height * sizeof(Cell));
 
   board->cells = cells;
   board->width = width;
@@ -25,12 +30,13 @@ void board_set_cell(
     const Board *const board,
     const size_t x,
     const size_t y,
-    const bool value
+    const Cell value
 ) {
   const auto n = y * board->width + x;
 
 #ifdef DEBUG
-  if (n >= board->width * board->height) {
+  if (n >= board_size(board)) {
+    fprintf(stderr, "Invalid cell access: %zu\n", n);
     return;
   }
 #endif
@@ -38,14 +44,19 @@ void board_set_cell(
   board->cells[n] = value;
 }
 
-bool board_get_cell(const Board *const board, const size_t x, const size_t y) {
-  const auto n = y * board->width + x;
+Cell *board_get_row(const Board *board, const size_t row) {
+  const auto n = row * board->width;
 
 #ifdef DEBUG
-  if (n >= board->width * board->height) {
-    return false;
+  if (n >= board_size(board)) {
+    fprintf(stderr, "Invalid row access: %zu\n", n);
+    return nullptr;
   }
 #endif
 
-  return board->cells[n];
+  return board->cells + n;
+}
+
+inline size_t board_size(const Board *const board) {
+  return board->width * board->height;
 }

@@ -4,8 +4,8 @@ project(common C)
 set(CMAKE_C_STANDARD 23)
 
 add_library(${PROJECT_NAME}
-        src/hello.c
         src/board.c
+        src/board_utils.c
         src/utils.c
 )
 

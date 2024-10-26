@@ -1,108 +1,36 @@
+#include <game_of_life/board.h>
+#include <game_of_life/board_utils.h>
 #include <game_of_life/utils.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <time.h>
 
-void evaluate_row(
-    const bool* row,
-    const bool* prevRow,
-    const bool* nextRow,
-    size_t size,
-    bool* futureRow
-) {
-  for (int column = 0; column < size; column++) {
-    int count = 0;
-    for (int offset = -1; offset <= 1; offset++) {
-      int newColumn = column + offset;
-      if (newColumn < 0 || newColumn >= size) {
-        continue;
-      }
-      if (prevRow && prevRow[newColumn]) {
-        count++;
-      }
-      if (nextRow && nextRow[newColumn]) {
-        count++;
-      }
-      if (offset == 0) {
-        continue;
-      }
-      if (row[newColumn]) {
-        count++;
-      }
-    }
-    if (row[column]) {
-      futureRow[column] = (count == 2 || count == 3);
-    } else {
-      futureRow[column] = (count == 3);
-    }
-  }
-}
-
-void write_pgm(const char* fileName, int width, int height, const bool* board) {
-  FILE* file = fopen(fileName, "wb");
+void write_pgm(const char* const file_name, const Board* const board) {
+  FILE* file = fopen(file_name, "wb");
   if (file == NULL) {
-    printf("Unable to open file %s\n", fileName);
+    fprintf(stderr, "Unable to open file %s\n", file_name);
     return;
   }
 
-  fprintf(file, "P5\n%d %d\n255\n", width, height);
+  fprintf(file, "P5\n%lu %lu\n255\n", board->width, board->height);
 
-  unsigned char* buffer =
-      (unsigned char*)malloc(width * height * sizeof(unsigned char));
-  if (buffer == NULL) {
+  const auto buffer =
+      (unsigned char*)malloc(board_size(board) * sizeof(u_int8_t));
+
+  if (buffer == nullptr) {
+    fprintf(stderr, "Unable to allocate memory for PGM file\n");
     fclose(file);
     return;
   }
 
-  for (int i = 0; i < width * height; i++) {
-    buffer[i] = board[i] ? 255 : 0;
+  for (int i = 0; i < board_size(board); i++) {
+    buffer[i] = board->cells[i] == ALIVE ? 255 : 0;
   }
 
-  fwrite(buffer, sizeof(unsigned char), width * height, file);
+  fwrite(buffer, sizeof(u_int8_t), board_size(board), file);
 
   free(buffer);
   fclose(file);
-}
-
-bool* init_board(size_t size, enum InitType type) {
-  bool* board = (bool*)malloc(size * size * sizeof(bool));
-  if (board == NULL) {
-    printf("Memory allocation failed\n");
-    exit(1);
-  }
-
-  if (type == RANDOM) {
-    srand(time(NULL));
-    for (int i = 0; i < size * size; i++) {
-      double r = (double)rand() / RAND_MAX;
-      if (r < 0.15) {
-        board[i] = true;
-      } else {
-        board[i] = false;
-      }
-    }
-  } else if (type == MIGRATE) {
-    for (int i = 0; i < size * size; i++) {
-      board[i] = false;
-    }
-    board[1 * size + 1] = true;
-    board[2 * size + 2] = true;
-    board[3 * size + 0] = true;
-    board[3 * size + 1] = true;
-    board[3 * size + 2] = true;
-  } else if (type == HALF_PLUS) {
-    for (int i = 0; i < size * size; i++) {
-      board[i] = false;
-    }
-    board[(size / 2) * size + size / 2] = true;
-    board[(size / 2) * size + 1 + size / 2] = true;
-    board[(size / 2 + 1) * size + size / 2] = true;
-    board[(size / 2 - 1) * size + size / 2] = true;
-  }
-
-  return board;
 }
 
 void parse_args(
@@ -111,12 +39,12 @@ void parse_args(
     int* size,
     int* iterations,
     int* type,
-    int* isVerbose
+    int* is_verbose
 ) {
   *size = 15;
   *iterations = 100;
   *type = HALF_PLUS;
-  *isVerbose = 1;
+  *is_verbose = 1;
 
   if (argc > 1) {
     *size = atoi(argv[1]);
@@ -128,13 +56,14 @@ void parse_args(
     *type = atoi(argv[3]);
   }
   if (argc > 4) {
-    *isVerbose = atoi(argv[4]);
+    *is_verbose = atoi(argv[4]);
   }
 }
 
-void print(const bool* board, size_t size, int number) {
-  char fileName[50];
+void print(const Board* const board, const int32_t number) {
+  char file_name[19 + 10 + 1] = {0};
+  // yes, it ignores mkdir return value :(
   mkdir("./images/", 0777);
-  sprintf(fileName, "./images/life%d.pgm", number);
-  write_pgm(fileName, size, size, board);
+  sprintf(file_name, "./images/life%d.pgm", number);
+  write_pgm(file_name, board);
 }
