@@ -2,7 +2,9 @@
 #include <game_of_life/board_utils.h>
 #include <manager.h>
 #include <mpi.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <worker.h>
 
 void worker_run(
@@ -145,4 +147,28 @@ void worker_run(
   board_destroy(feature_board);
   free(ghost_top);
   free(ghost_bottom);
+}
+
+void worker_get_board_part(
+    const Board* board,
+    const int* worker_buffer_sizes,
+    const int worker_id,
+    Cell* worker_buffer,
+    const int worker_buffer_size
+) {
+  int offset = 0;
+  for (int i = 0; i < worker_id; i++) {
+    offset += worker_buffer_sizes[i];
+  }
+
+  if (worker_buffer_size < worker_buffer_sizes[worker_id]) {
+    fprintf(stderr, "Worker buffer size is too small\n");
+    return;
+  }
+
+  memcpy(
+      worker_buffer,
+      board->cells + offset,
+      worker_buffer_size * sizeof(Cell)
+  );
 }

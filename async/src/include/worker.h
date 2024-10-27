@@ -20,3 +20,11 @@ void worker_run(
     size_t iterations,
     bool verbose
 );
+
+void worker_get_board_part(
+    const Board* board,
+    const int* worker_buffer_sizes,
+    int worker_id,
+    Cell* worker_buffer,
+    int worker_buffer_size
+);

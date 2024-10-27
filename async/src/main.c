@@ -4,7 +4,6 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <worker.h>
 
@@ -42,25 +41,28 @@ int main(int argc, char* argv[]) {
 
   const int worker_count = verbose ? processes_count - 1 : processes_count;
   int worker_height = height / worker_count;
+  int* worker_sizes = malloc(sizeof(int) * worker_count);
+  for (auto i = 0; i < worker_count; i++) {
+    worker_sizes[i] = worker_height * width;
+  }
+  // last worker gets the remaining rows
+  worker_sizes[worker_count - 1] += (height % worker_count) * width;
 
   // run manager
   if (verbose && process_id == MANAGER_ID) {
     if (process_id == MANAGER_ID) {
       if (mkdir(output_directory, 0777) == -1) {
         fprintf(stderr, "Unable to create directory %s\n", output_directory);
-        goto manager_cleanup;  // xd
+      } else {
+        manager_run(
+            output_directory,
+            processes_count - 1,
+            worker_sizes,
+            board,
+            iterations
+        );
       }
 
-      int* worker_sizes = malloc(sizeof(int) * worker_count);
-      for (auto i = 0; i < worker_count; i++) {
-        worker_sizes[i] = worker_height * width;
-      }
-      // last worker gets the remaining rows
-      worker_sizes[worker_count - 1] += (height % worker_count) * width;
-
-      manager_run(processes_count - 1, worker_sizes, board, iterations);
-
-    manager_cleanup:
       free(worker_sizes);
       board_destroy(board);
     }
@@ -75,15 +77,13 @@ int main(int argc, char* argv[]) {
 
     // create worker board
     Board* worker_board = board_create(width, worker_height);
-    const int worker_board_start = worker_id * worker_height * width;
-    // copy the cells to the worker board
-    memcpy(
+    worker_get_board_part(
+        board,
+        worker_sizes,
+        worker_id,
         worker_board->cells,
-        board->cells + worker_board_start,
-        worker_height * width * sizeof(Cell)
+        worker_board->width * worker_board->height
     );
-    // destroy the original board
-    board_destroy(board);
 
     WorkerType worker_type;
     if (worker_id == 0) {

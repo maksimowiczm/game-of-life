@@ -6,6 +6,7 @@
 #define MANAGER_ID 0
 
 void manager_run(
+    const char* output_directory,
     int workers_count,
     const int* worker_buffer_sizes,
     const Board* board,
