@@ -1,6 +1,6 @@
 #include <game_of_life/board.h>
 #include <game_of_life/board_utils.h>
-#include <manager.h>
+#include <game_of_life/manager.h>
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>

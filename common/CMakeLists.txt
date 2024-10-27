@@ -6,6 +6,7 @@ set(CMAKE_C_STANDARD 23)
 add_library(${PROJECT_NAME}
         src/board.c
         src/board_utils.c
+        src/manager.c
         src/utils.c
         src/pgm.c
 )
