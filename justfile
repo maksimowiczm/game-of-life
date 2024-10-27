@@ -27,3 +27,6 @@ release:
 clean:
     rm -rf {{ build_release_dir }}
     rm -rf {{ build_debug_dir }}
+
+video images output:
+    @ffmpeg -framerate 10 -i {{ images }}/%d.pgm -c:v ffv1 {{ output }}.mkv

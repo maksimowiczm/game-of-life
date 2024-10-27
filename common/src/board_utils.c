@@ -91,8 +91,7 @@ void init_board(const Board* const board, const InitType type) {
     board_set_cell(board, half_width - 1, half_height, ALIVE);
     board_set_cell(board, half_width, half_height, ALIVE);
     board_set_cell(board, half_width + 1, half_height, ALIVE);
-  }
-  else if (type == LINE){
+  } else if (type == LINE) {
     for (size_t y = 0; y < board->height; y++) {
       const auto half_width = board->width / 2;
 

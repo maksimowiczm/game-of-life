@@ -1,5 +1,5 @@
-#include <game_of_life/pgm.h>
 #include <game_of_life/manager.h>
+#include <game_of_life/pgm.h>
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -9,9 +9,13 @@
 // ffmpeg -framerate 3 -i life%d.pgm -vf "scale=iw*10:ih*10" -c:v libx264
 // -pix_fmt yuv420p output.mp4
 
-void print(const Board* const board, const int32_t iteration) {
-  char file_name[19 + 10 + 1] = {0};
-  sprintf(file_name, "./images/life%d.pgm", iteration);
+void print(
+    const Board* const board,
+    const char* output_directory,
+    const int32_t iteration
+) {
+  char file_name[1000 + 100] = {0};
+  sprintf(file_name, "./%s/%d.pgm", output_directory, iteration);
 
   const auto pgm = PGM_from_board(board);
   PGM_write(pgm, file_name);
@@ -19,12 +23,19 @@ void print(const Board* const board, const int32_t iteration) {
 }
 
 int main(int argc, char** argv) {
-  int N, iterations, type, isVerbose;
-  const char* output_directory = "images";
-  parse_args(argc, argv, &N, &iterations, &type, &isVerbose);
+  Parameters parameters = {0};
+  auto ptr = &parameters;
+  if (!parse_args(argc, argv, &ptr)) {
+    return 0;
+  }
 
-  struct stat st;
-  if (mkdir(output_directory, 0777) == -1 && stat(output_directory, &st) != 0) {
+  const auto output_directory = parameters.output_directory;
+  const auto N = parameters.size;
+  const auto iterations = parameters.iterations;
+  const auto type = parameters.type;
+  const auto isVerbose = parameters.is_verbose;
+
+  if (isVerbose && mkdir(output_directory, 0777) == -1) {
     fprintf(stderr, "Unable to create directory %s\n", output_directory);
     return 1;
   }
@@ -39,7 +50,7 @@ int main(int argc, char** argv) {
 
   for (int iter = 0; iter < iterations; iter++) {
     if (isVerbose) {
-      print(board, iter);
+      print(board, output_directory, iter);
     }
 
     for (int rowNr = 1; rowNr < N - 1; rowNr++) {
@@ -73,7 +84,7 @@ int main(int argc, char** argv) {
   }
 
   if (isVerbose) {
-    print(board, iterations);
+    print(board, output_directory, iterations);
   }
 
   board_destroy(board);

@@ -1,6 +1,7 @@
 #include <game_of_life/board.h>
 #include <game_of_life/board_utils.h>
 #include <game_of_life/manager.h>
+#include <game_of_life/utils.h>
 #include <game_of_life/worker.h>
 #include <mpi.h>
 #include <stdio.h>
@@ -14,13 +15,19 @@ int main(int argc, char* argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &processes_count);
   MPI_Comm_rank(MPI_COMM_WORLD, &process_id);
 
-  // todo parse input
-  // hardcoded values
-  const auto width = 100;
-  const auto height = 100;
-  const auto verbose = true;
-  const auto iterations = 400;
-  const auto output_directory = "images";
+  Parameters parameters = {0};
+  auto ptr = &parameters;
+  if (!parse_args(argc, argv, &ptr)) {
+    MPI_Finalize();
+    return 0;
+  }
+
+  const auto output_directory = parameters.output_directory;
+  const auto width = parameters.size;
+  const auto height = parameters.size;
+  const auto iterations = parameters.iterations;
+  const auto type = parameters.type;
+  const auto verbose = parameters.is_verbose;
 
   if (verbose && processes_count < 3) {
     fprintf(stderr, "At least 3 processes are required for verbose mode\n");
@@ -35,9 +42,7 @@ int main(int argc, char* argv[]) {
 
   Board* const board = board_create(height, width);
 
-  // todo initialize board with input
-  // hardcoded values
-  init_board(board, MIGRATE);
+  init_board(board, type);
 
   const int worker_count = verbose ? processes_count - 1 : processes_count;
   int worker_height = height / worker_count;
@@ -52,7 +57,8 @@ int main(int argc, char* argv[]) {
   if (verbose && process_id == MANAGER_ID) {
     if (process_id == MANAGER_ID) {
       struct stat st;
-      if (mkdir(output_directory, 0777) == -1 && stat(output_directory, &st) != 0) {
+      if (mkdir(output_directory, 0777) == -1 &&
+          stat(output_directory, &st) != 0) {
         fprintf(stderr, "Unable to create directory %s\n", output_directory);
       } else {
         manager_run(
