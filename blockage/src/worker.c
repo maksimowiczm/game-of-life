@@ -25,8 +25,6 @@ void worker_run(
     ghost_bottom = malloc(sizeof(Cell) * board->width);
   }
 
-  MPI_Request send_requests[2] = {MPI_REQUEST_NULL, MPI_REQUEST_NULL};
-  MPI_Request edge_requests[2] = {MPI_REQUEST_NULL, MPI_REQUEST_NULL};
   MPI_Request manager_request = MPI_REQUEST_NULL;
 
   for (int i = 0; i < iterations; i++) {
@@ -43,27 +41,48 @@ void worker_run(
       );
     }
 
-    // notify other workers with our edge rows
-    if (worker_type != TOP) {
-      MPI_Isend(
+    // communication between workers
+    if (worker_type != TOP && ghost_top != nullptr) {
+      MPI_Sendrecv(
           board_get_row(board, 0),
           board->width,
           MPI_INT32_T,
           id - 1,
           id,
-          MPI_COMM_WORLD,
-          &send_requests[0]
-      );
-    }
-    if (worker_type != BOTTOM) {
-      MPI_Isend(
-          board_get_row(board, board->height - 1),
+          ghost_top,
           board->width,
           MPI_INT32_T,
-          id + 1,
-          id,
+          id - 1,
+          id - 1,
           MPI_COMM_WORLD,
-          &send_requests[1]
+          MPI_STATUS_IGNORE
+      );
+    }
+    if (worker_type != BOTTOM && ghost_bottom != nullptr) {
+      MPI_Sendrecv(
+        board_get_row(board, board->height - 1),
+        board->width,
+        MPI_INT32_T,
+        id + 1,
+        id,
+        ghost_bottom,
+        board->width,
+        MPI_INT32_T,
+        id + 1,
+        id + 1,
+        MPI_COMM_WORLD,
+        MPI_STATUS_IGNORE
+    );
+    }
+
+    // evaluate top row
+    if (ghost_top != nullptr) {
+      evaluate_row(
+          board_get_row(board, 0),
+          ghost_top,
+          board_get_row(board, 1),
+          board->width,
+          board_get_row(feature_board, 0)
       );
     }
 
@@ -82,49 +101,7 @@ void worker_run(
       );
     }
 
-    // receive edge rows
-    if (ghost_top != nullptr) {
-      MPI_Irecv(
-          ghost_top,
-          board->width,
-          MPI_INT32_T,
-          id - 1,
-          id - 1,
-          MPI_COMM_WORLD,
-          &edge_requests[0]
-      );
-    }
-    if (ghost_bottom != nullptr) {
-      MPI_Irecv(
-          ghost_bottom,
-          board->width,
-          MPI_INT32_T,
-          id + 1,
-          id + 1,
-          MPI_COMM_WORLD,
-          &edge_requests[1]
-      );
-    }
-
-    // await promises
-    MPI_Request promises[4] = {
-        send_requests[0],
-        send_requests[1],
-        edge_requests[0],
-        edge_requests[1]
-    };
-    MPI_Waitall(4, promises, MPI_STATUSES_IGNORE);
-
-    // evaluate edge rows
-    if (ghost_top != nullptr) {
-      evaluate_row(
-          board_get_row(board, 0),
-          ghost_top,
-          board_get_row(board, 1),
-          board->width,
-          board_get_row(feature_board, 0)
-      );
-    }
+    // evaluate bottom row
     if (ghost_bottom != nullptr) {
       evaluate_row(
           board_get_row(board, board->height - 1),
