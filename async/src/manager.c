@@ -5,7 +5,7 @@
 
 void manager_run(
     const int workers_count,
-    const int* worker_sizes,
+    const int* worker_buffer_sizes,
     const Board* board,
     const size_t iterations
 ) {
@@ -17,7 +17,7 @@ void manager_run(
       const auto worker_id = w + 1;
       MPI_Irecv(
           board->cells + offset,
-          worker_sizes[w],
+          worker_buffer_sizes[w],
           MPI_INT32_T,
           worker_id,
           worker_id,
@@ -25,7 +25,7 @@ void manager_run(
           &promises[w]
       );
 
-      offset += worker_sizes[w];
+      offset += worker_buffer_sizes[w];
     }
 
     // await promises

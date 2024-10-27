@@ -16,7 +16,7 @@ typedef enum WorkerType WorkerType;
 void worker_run(
     int id,
     WorkerType worker_type,
-    const Board* board,
+    Board* board,
     size_t iterations,
     bool verbose
 );
