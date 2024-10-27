@@ -23,7 +23,8 @@ int main(int argc, char** argv) {
   const char* output_directory = "images";
   parse_args(argc, argv, &N, &iterations, &type, &isVerbose);
 
-  if (mkdir(output_directory, 0777) == -1) {
+  struct stat st;
+  if (mkdir(output_directory, 0777) == -1 && stat(output_directory, &st) != 0) {
     fprintf(stderr, "Unable to create directory %s\n", output_directory);
     return 1;
   }
