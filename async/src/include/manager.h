@@ -7,7 +7,7 @@
 
 void manager_run(
     int workers_count,
-    const int* worker_sizes,
+    const int* worker_buffer_sizes,
     const Board* board,
     size_t iterations
 );

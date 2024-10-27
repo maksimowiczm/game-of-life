@@ -30,8 +30,6 @@ void manager_run(
 
     // await promises
     MPI_Waitall(workers_count, promises, MPI_STATUSES_IGNORE);
-
-    print(board, i);
   }
 
   free(promises);

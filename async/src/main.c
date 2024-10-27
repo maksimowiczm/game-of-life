@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <worker.h>
 
 int main(int argc, char* argv[]) {
@@ -20,6 +21,7 @@ int main(int argc, char* argv[]) {
   const auto height = 100;
   const auto verbose = true;
   const auto iterations = 400;
+  const auto output_directory = "images";
 
   if (verbose && processes_count < 3) {
     fprintf(stderr, "At least 3 processes are required for verbose mode\n");
@@ -44,6 +46,11 @@ int main(int argc, char* argv[]) {
   // run manager
   if (verbose && process_id == MANAGER_ID) {
     if (process_id == MANAGER_ID) {
+      if (mkdir(output_directory, 0777) == -1) {
+        fprintf(stderr, "Unable to create directory %s\n", output_directory);
+        goto manager_cleanup;  // xd
+      }
+
       int* worker_sizes = malloc(sizeof(int) * worker_count);
       for (auto i = 0; i < worker_count; i++) {
         worker_sizes[i] = worker_height * width;
@@ -53,6 +60,7 @@ int main(int argc, char* argv[]) {
 
       manager_run(processes_count - 1, worker_sizes, board, iterations);
 
+    manager_cleanup:
       free(worker_sizes);
       board_destroy(board);
     }
