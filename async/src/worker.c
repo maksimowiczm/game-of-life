@@ -116,24 +116,21 @@ void worker_run(
     MPI_Waitall(4, promises, MPI_STATUSES_IGNORE);
 
     // evaluate edge rows
-    if (ghost_top != nullptr) {
-      evaluate_row(
-          board_get_row(board, 0),
-          ghost_top,
-          board_get_row(board, 1),
-          board->width,
-          board_get_row(feature_board, 0)
-      );
-    }
-    if (ghost_bottom != nullptr) {
-      evaluate_row(
-          board_get_row(board, board->height - 1),
-          board_get_row(board, board->height - 2),
-          ghost_bottom,
-          board->width,
-          board_get_row(feature_board, board->height - 1)
-      );
-    }
+    evaluate_row(
+        board_get_row(board, 0),
+        ghost_top,
+        board_get_row(board, 1),
+        board->width,
+        board_get_row(feature_board, 0)
+    );
+
+    evaluate_row(
+        board_get_row(board, board->height - 1),
+        board_get_row(board, board->height - 2),
+        ghost_bottom,
+        board->width,
+        board_get_row(feature_board, board->height - 1)
+    );
 
     // await manager request
     MPI_Wait(&manager_request, MPI_STATUS_IGNORE);
