@@ -51,7 +51,8 @@ int main(int argc, char* argv[]) {
   // run manager
   if (verbose && process_id == MANAGER_ID) {
     if (process_id == MANAGER_ID) {
-      if (mkdir(output_directory, 0777) == -1) {
+      struct stat st;
+      if (mkdir(output_directory, 0777) == -1 && stat(output_directory, &st) != 0) {
         fprintf(stderr, "Unable to create directory %s\n", output_directory);
       } else {
         manager_run(
