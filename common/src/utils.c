@@ -4,13 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool parse_args(const int argc, char* argv[], Parameters** parameters) {
+int parse_args(const int argc, char* argv[], Parameters** parameters) {
   memset(*parameters, 0, sizeof(Parameters));
 
   (*parameters)->size = 15;
   (*parameters)->iterations = 100;
   (*parameters)->type = LINE;
-  (*parameters)->is_verbose = false;
+  (*parameters)->is_verbose = 0;
 
   if (argc < 3) {
     printf(
@@ -26,7 +26,7 @@ bool parse_args(const int argc, char* argv[], Parameters** parameters) {
     printf("    3: half_plus\n");
     printf("    4: line\n");
     printf("  output_directory: directory to save the output\n");
-    return false;
+    return 0;
   }
 
   (*parameters)->size = atoi(argv[1]);
@@ -36,9 +36,9 @@ bool parse_args(const int argc, char* argv[], Parameters** parameters) {
     (*parameters)->type = atoi(argv[3]);
   }
   if (argc > 4) {
-    (*parameters)->is_verbose = true;
+    (*parameters)->is_verbose = 1;
     memcpy((*parameters)->output_directory, argv[4], strlen(argv[4]));
   }
 
-  return true;
+  return 1;
 }

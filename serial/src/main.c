@@ -17,25 +17,27 @@ void print(
   char file_name[1000 + 100] = {0};
   sprintf(file_name, "./%s/%d.pgm", output_directory, iteration);
 
-  const auto pgm = PGM_from_board(board);
+  PGM* pgm = PGM_from_board(board);
   PGM_write(pgm, file_name);
   PGM_destroy(pgm);
 }
 
 int main(int argc, char** argv) {
   Parameters parameters = {0};
-  auto ptr = &parameters;
+  Parameters* ptr = &parameters;
   if (!parse_args(argc, argv, &ptr)) {
     return 0;
   }
 
-  const auto output_directory = parameters.output_directory;
-  const auto N = parameters.size;
-  const auto iterations = parameters.iterations;
-  const auto type = parameters.type;
-  const auto isVerbose = parameters.is_verbose;
+  char* output_directory = parameters.output_directory;
+  const int width = parameters.size;
+  const int height = parameters.size;
+  const int iterations = parameters.iterations;
+  const InitType type = parameters.type;
+  const int verbose = parameters.is_verbose;
+  const int N = width;
 
-  if (isVerbose && mkdir(output_directory, 0777) == -1) {
+  if (verbose && mkdir(output_directory, 0777) == -1) {
     fprintf(stderr, "Unable to create directory %s\n", output_directory);
     return 1;
   }
@@ -49,7 +51,7 @@ int main(int argc, char** argv) {
   Board* nextBoard = board_create(N, N);
 
   for (int iter = 0; iter < iterations; iter++) {
-    if (isVerbose) {
+    if (verbose) {
       print(board, output_directory, iter);
     }
 
@@ -65,7 +67,7 @@ int main(int argc, char** argv) {
 
     evaluate_row(
         board_get_row(board, 0),
-        nullptr,
+        NULL,
         board_get_row(board, 1),
         N,
         board_get_row(nextBoard, 0)
@@ -73,7 +75,7 @@ int main(int argc, char** argv) {
     evaluate_row(
         board_get_row(board, N - 1),
         board_get_row(board, N - 2),
-        nullptr,
+        NULL,
         N,
         board_get_row(nextBoard, N - 1)
     );
@@ -83,7 +85,7 @@ int main(int argc, char** argv) {
     nextBoard = temp;
   }
 
-  if (isVerbose) {
+  if (verbose) {
     print(board, output_directory, iterations);
   }
 

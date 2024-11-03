@@ -17,7 +17,7 @@ void PGM_write(const PGM* const pgm, const char* const file_name) {
 }
 
 PGM* PGM_from_board(const Board* const board) {
-  const auto pgm = (PGM*)malloc(sizeof(PGM));
+  PGM* pgm = (PGM*)malloc(sizeof(PGM));
 
   pgm->width = board->width;
   pgm->height = board->height;

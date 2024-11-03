@@ -12,14 +12,14 @@ void manager_run(
     const Board* board,
     const size_t iterations
 ) {
-  const auto output_directory_length = strlen(output_directory);
+  const int output_directory_length = strlen(output_directory);
   char* filename = malloc(sizeof(char) * (output_directory_length + 15));
   memset(filename, 0, sizeof(char) * (output_directory_length + 15));
 
   MPI_Request* promises = malloc(sizeof(MPI_Request) * workers_count);
 
   for (int i = 0; i < iterations; i++) {
-    const auto pgm = PGM_from_board(board);
+    const PGM* pgm = PGM_from_board(board);
     sprintf(filename, "%s/%d.pgm", output_directory, i);
 
     int offset = 0;
@@ -30,7 +30,7 @@ void manager_run(
         }
       }
 
-      const auto worker_id = w + 1;
+      const int worker_id = w + 1;
       MPI_Irecv(
           board->cells + offset,
           worker_buffer_sizes[w],

@@ -8,11 +8,11 @@ Board *board_create(const size_t width, const size_t height) {
     fprintf(stderr, "Invalid board size: %zu x %zu\n", height, width);
 #endif
 
-    return nullptr;
+    return NULL;
   }
 
-  const auto board = (Board *)malloc(sizeof(Board));
-  const auto cells = (Cell *)malloc(width * height * sizeof(Cell));
+  Board * board = (Board *)malloc(sizeof(Board));
+  Cell * cells = (Cell *)malloc(width * height * sizeof(Cell));
 
   board->cells = cells;
   board->width = width;
@@ -32,7 +32,7 @@ void board_set_cell(
     const size_t y,
     const Cell value
 ) {
-  const auto n = y * board->width + x;
+  const int n = y * board->width + x;
 
 #ifdef DEBUG
   if (n >= board_size(board)) {
@@ -45,12 +45,12 @@ void board_set_cell(
 }
 
 Cell *board_get_row(const Board *board, const size_t row) {
-  const auto n = row * board->width;
+  const int n = row * board->width;
 
 #ifdef DEBUG
   if (n >= board_size(board)) {
     fprintf(stderr, "Invalid row access: %zu\n", n);
-    return nullptr;
+    return NULL;
   }
 #endif
 

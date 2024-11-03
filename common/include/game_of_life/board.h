@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-enum Cell { ALIVE = true, DEAD = false };
+enum Cell { ALIVE = 1, DEAD = 0 };
 
 typedef enum Cell Cell;
 

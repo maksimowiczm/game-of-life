@@ -12,15 +12,15 @@ void worker_run(
     const WorkerType worker_type,
     Board* board,
     const size_t iterations,
-    const bool verbose
+    const int verbose
 ) {
   Board* feature_board = board_create(board->width, board->height);
-  Cell* ghost_top = nullptr;
+  Cell* ghost_top = NULL;
   if (worker_type != TOP) {
     ghost_top = malloc(sizeof(Cell) * board->width);
   }
 
-  Cell* ghost_bottom = nullptr;
+  Cell* ghost_bottom = NULL;
   if (worker_type != BOTTOM) {
     ghost_bottom = malloc(sizeof(Cell) * board->width);
   }
@@ -83,7 +83,7 @@ void worker_run(
     }
 
     // receive edge rows
-    if (ghost_top != nullptr) {
+    if (ghost_top != NULL) {
       MPI_Irecv(
           ghost_top,
           board->width,
@@ -94,7 +94,7 @@ void worker_run(
           &edge_requests[0]
       );
     }
-    if (ghost_bottom != nullptr) {
+    if (ghost_bottom != NULL) {
       MPI_Irecv(
           ghost_bottom,
           board->width,
@@ -113,7 +113,15 @@ void worker_run(
         edge_requests[0],
         edge_requests[1]
     };
-    MPI_Waitall(4, promises, MPI_STATUSES_IGNORE);
+
+    MPI_Status statuses[4];
+    MPI_Waitall(4, promises, statuses);
+
+    for(int i = 0; i < 4; i++) {
+      if(statuses[i].MPI_ERROR != MPI_SUCCESS) {
+        fprintf(stderr, "wait all error");
+      }
+    }
 
     // evaluate edge rows
     evaluate_row(
@@ -159,7 +167,7 @@ void worker_get_board_part(
   }
 
   if (worker_buffer_size < worker_buffer_sizes[worker_id]) {
-    fprintf(stderr, "Worker buffer size is too small\n");
+    fprintf(stderr, "Worker %d buffer size is too small\n", worker_id);
     return;
   }
 

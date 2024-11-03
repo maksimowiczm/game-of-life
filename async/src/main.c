@@ -16,18 +16,19 @@ int main(int argc, char* argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &process_id);
 
   Parameters parameters = {0};
-  auto ptr = &parameters;
+  Parameters* ptr = &parameters;
   if (!parse_args(argc, argv, &ptr)) {
     MPI_Finalize();
-    return 0;
+    fprintf(stderr, "PARSER EXCEPTION");
+    return 1;
   }
 
-  const auto output_directory = parameters.output_directory;
-  const auto width = parameters.size;
-  const auto height = parameters.size;
-  const auto iterations = parameters.iterations;
-  const auto type = parameters.type;
-  const auto verbose = parameters.is_verbose;
+  char* output_directory = parameters.output_directory;
+  const int width = parameters.size;
+  const int height = parameters.size;
+  const int iterations = parameters.iterations;
+  const InitType type = parameters.type;
+  const int verbose = parameters.is_verbose;
 
   if (verbose && processes_count < 3) {
     fprintf(stderr, "At least 3 processes are required for verbose mode\n");
@@ -76,9 +77,10 @@ int main(int argc, char* argv[]) {
   }
   // run workers
   else {
+    double start = MPI_Wtime();
     const int worker_id = verbose ? process_id - 1 : process_id;
     // last worker gets the remaining rows
-    if (worker_id == worker_count) {
+    if (worker_id == worker_count - 1) {
       worker_height += height % worker_count;
     }
 
@@ -104,6 +106,10 @@ int main(int argc, char* argv[]) {
     worker_run(process_id, worker_type, worker_board, iterations, verbose);
 
     board_destroy(worker_board);
+
+    double stop = MPI_Wtime();
+
+    printf("Worker %d, time = %lf\n", worker_id, stop - start);
   }
 
   MPI_Finalize();

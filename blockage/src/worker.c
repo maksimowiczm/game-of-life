@@ -12,15 +12,15 @@ void worker_run(
     const WorkerType worker_type,
     Board* board,
     const size_t iterations,
-    const bool verbose
+    const int verbose
 ) {
   Board* feature_board = board_create(board->width, board->height);
-  Cell* ghost_top = nullptr;
+  Cell* ghost_top = NULL;
   if (worker_type != TOP) {
     ghost_top = malloc(sizeof(Cell) * board->width);
   }
 
-  Cell* ghost_bottom = nullptr;
+  Cell* ghost_bottom = NULL;
   if (worker_type != BOTTOM) {
     ghost_bottom = malloc(sizeof(Cell) * board->width);
   }
@@ -42,8 +42,9 @@ void worker_run(
     }
 
     // communication between workers
-    if (worker_type != TOP && ghost_top != nullptr) {
-      MPI_Sendrecv(
+    if (worker_type != TOP && ghost_top != NULL) {
+      int error_code;
+      error_code = MPI_Sendrecv(
           board_get_row(board, 0),
           board->width,
           MPI_INT32_T,
@@ -57,9 +58,14 @@ void worker_run(
           MPI_COMM_WORLD,
           MPI_STATUS_IGNORE
       );
+      if(error_code != MPI_SUCCESS){
+        printf("stderr: MPI FAILED 1\n");
+      }
+
     }
-    if (worker_type != BOTTOM && ghost_bottom != nullptr) {
-      MPI_Sendrecv(
+    if (worker_type != BOTTOM && ghost_bottom != NULL) {
+      int error_code;
+      error_code = MPI_Sendrecv(
         board_get_row(board, board->height - 1),
         board->width,
         MPI_INT32_T,
@@ -73,6 +79,9 @@ void worker_run(
         MPI_COMM_WORLD,
         MPI_STATUS_IGNORE
     );
+    if(error_code != MPI_SUCCESS){
+        printf("stderr: MPI FAILED 2\n");
+      }
     }
 
     // evaluate top row
