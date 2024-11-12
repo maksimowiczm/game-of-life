@@ -63,7 +63,21 @@ void init_board(const Board* const board, const InitType type) {
         board_set_cell(board, x, y, new_value);
       }
     }
-  } else if (type == MIGRATE) {
+  }
+  else if(type == SMALL_LINE){
+    if (board->width < 3 || board->height < 11) {
+      fprintf(stderr, "Board is too small for MIGRATE pattern\n");
+      return;
+    }
+    const auto half_width = board->width / 2;
+    const auto half_height = board->height / 2;
+
+    for (size_t y = half_height-5; y < half_height+5; y++) {
+      board_set_cell(board, half_width, y, ALIVE);
+    }
+
+  }
+  else if (type == MIGRATE) {
     if (board->width < 4 || board->height < 3) {
       fprintf(stderr, "Board is too small for MIGRATE pattern\n");
       return;

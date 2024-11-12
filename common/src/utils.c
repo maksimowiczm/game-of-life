@@ -21,7 +21,7 @@ int parse_args(const int argc, char* argv[], Parameters** parameters) {
     printf("  iterations: number of iterations\n");
     printf("  type: type of the initial board\n");
     printf("    0: random\n");
-    printf("    1: plus\n");
+    printf("    1: small_line\n");
     printf("    2: migrate\n");
     printf("    3: half_plus\n");
     printf("    4: line\n");

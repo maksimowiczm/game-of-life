@@ -2,7 +2,7 @@
 
 #include <game_of_life/board.h>
 
-enum InitType { RANDOM, PLUS, MIGRATE, HALF_PLUS, LINE };
+enum InitType { RANDOM, SMALL_LINE, MIGRATE, HALF_PLUS, LINE };
 
 typedef enum InitType InitType;
 
