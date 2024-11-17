@@ -10,3 +10,4 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} common)
 target_link_libraries(${PROJECT_NAME} ${MPI_C_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_C)

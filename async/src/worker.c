@@ -68,6 +68,7 @@ void worker_run(
     }
 
     // evaluate inner rows
+    #pragma omp parallel for
     for (int row = 1; row < board->height - 1; row++) {
       const Cell* const previous_row = board_get_row(board, row - 1);
       const Cell* const current_row = board_get_row(board, row);

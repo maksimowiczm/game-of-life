@@ -9,7 +9,8 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} common)
-target_link_libraries(${PROJECT_NAME} MPI::MPI_C OpenMP::OpenMP_C)
+target_link_libraries(${PROJECT_NAME} ${MPI_C_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_C)
 
 # If needed, you can also set the number of OpenMP threads here
-set(ENV{OMP_NUM_THREADS} "4")
+# set(ENV{OMP_NUM_THREADS} "4")
