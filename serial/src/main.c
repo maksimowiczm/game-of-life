@@ -50,6 +50,9 @@ int main(int argc, char** argv) {
   init_board(board, type);
   Board* nextBoard = board_create(N, N);
 
+  struct timespec tp1,tp2;
+  clock_gettime(CLOCK_MONOTONIC,&tp1);
+
   for (int iter = 0; iter < iterations; iter++) {
     if (verbose) {
       print(board, output_directory, iter);
@@ -84,6 +87,10 @@ int main(int argc, char** argv) {
     board = nextBoard;
     nextBoard = temp;
   }
+  clock_gettime(CLOCK_MONOTONIC,&tp2);
+
+  double extime=(double)tp2.tv_sec+1e-9*(double)tp2.tv_nsec-(double)tp1.tv_sec-1e-9*(double)tp1.tv_nsec;
+  printf("Execution time: %5.3f ms\n",extime*1000.0);
 
   if (verbose) {
     print(board, output_directory, iterations);

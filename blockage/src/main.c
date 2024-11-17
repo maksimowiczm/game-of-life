@@ -55,27 +55,27 @@ int main(int argc, char* argv[]) {
 
   // run manager
   if (verbose && process_id == MANAGER_ID) {
-    if (process_id == MANAGER_ID) {
-      struct stat st;
-      if (mkdir(output_directory, 0777) == -1 &&
-          stat(output_directory, &st) != 0) {
-        fprintf(stderr, "Unable to create directory %s\n", output_directory);
-      } else {
-        manager_run(
-            output_directory,
-            processes_count - 1,
-            worker_sizes,
-            board,
-            iterations
-        );
-      }
-
-      free(worker_sizes);
-      board_destroy(board);
+    struct stat st;
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (mkdir(output_directory, 0777) == -1 &&
+        stat(output_directory, &st) != 0) {
+      fprintf(stderr, "Unable to create directory %s\n", output_directory);
+    } else {
+      manager_run(
+          output_directory,
+          processes_count - 1,
+          worker_sizes,
+          board,
+          iterations
+      );
     }
+    MPI_Barrier(MPI_COMM_WORLD);
+    free(worker_sizes);
+    board_destroy(board);
   }
   // run workers
   else {
+    MPI_Barrier(MPI_COMM_WORLD);
     double start = MPI_Wtime();
 
     const int worker_id = verbose ? process_id - 1 : process_id;
@@ -107,9 +107,11 @@ int main(int argc, char* argv[]) {
 
     board_destroy(worker_board);
 
+    MPI_Barrier(MPI_COMM_WORLD);
     double stop = MPI_Wtime();
 
-    printf("Worker %d, time = %lf\n", worker_id, stop - start);
+    if (worker_id == 1)
+      printf("%5.4lf\n", stop - start);
   }
 
   MPI_Finalize();
