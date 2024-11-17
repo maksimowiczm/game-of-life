@@ -20,6 +20,12 @@ build:
     @cmake -B {{ build_debug_dir }} -DCMAKE_BUILD_TYPE=Debug
     @cmake --build {{ build_debug_dir }}
 
+build-openmp:
+    @cmake -B {{ build_debug_dir }} \
+           -DCMAKE_BUILD_TYPE=Debug \
+           -DCMAKE_C_FLAGS="-fopenmp"
+    @cmake --build {{ build_debug_dir }}
+
 release:
     @cmake -B {{ build_release_dir }} -DCMAKE_BUILD_TYPE=Release
     @cmake --build {{ build_release_dir }}
