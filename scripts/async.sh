@@ -1,3 +1,4 @@
 #!/bin/sh
+#SBATCH --output=R-%x.%j.out
 
-srun --mpi=pmi2 ../build/async/async "$@"
+srun --mpi=pmi2 ./game-of-life-main/async/async "$@"
