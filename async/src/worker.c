@@ -1,6 +1,7 @@
 #include <game_of_life/board.h>
 #include <game_of_life/board_utils.h>
 #include <game_of_life/manager.h>
+#include <game_of_life/pgm.h>
 #include <game_of_life/worker.h>
 #include <mpi.h>
 #include <stdio.h>
@@ -16,7 +17,9 @@ void worker_run(
     const WorkerType worker_type,
     Board* board,
     const size_t iterations,
-    const int verbose
+    const int verbose,
+    char* output_directory,
+    int* worker_sizes
 ) {
   Board* feature_board = board_create(board->width, board->height);
   Cell* ghost_top = NULL;
@@ -31,20 +34,53 @@ void worker_run(
 
   MPI_Request send_requests[2] = {MPI_REQUEST_NULL, MPI_REQUEST_NULL};
   MPI_Request edge_requests[2] = {MPI_REQUEST_NULL, MPI_REQUEST_NULL};
-  MPI_Request manager_request = MPI_REQUEST_NULL;
+
+  int total_recv_size;
+  int* displs;
+  int num_processes;
+  char* filename;
+  Board* out_board;
+  if (verbose) {
+    MPI_Comm_size(MPI_COMM_WORLD, &num_processes);
+    displs = malloc(sizeof(int) * num_processes);
+    total_recv_size = 0;
+    for (int proc = 0; proc < num_processes; proc++) {
+      displs[proc] = total_recv_size;
+      total_recv_size += worker_sizes[proc];
+    }
+    if (id == MANAGER_ID) {
+      out_board = board_create(board->width, total_recv_size / board->width);
+      const int output_directory_length = strlen(output_directory);
+      filename = malloc(sizeof(char) * (output_directory_length + 15));
+      memset(filename, 0, sizeof(char) * (output_directory_length + 15));
+    }
+
+  }
 
   for (int i = 0; i < iterations; i++) {
-    // notify manager about current state
     if (verbose) {
-      MPI_Isend(
-          board->cells,
-          board_size(board),
-          MPI_INT32_T,
-          MANAGER_ID,
-          id,
-          MPI_COMM_WORLD,
-          &manager_request
+      int err = MPI_Gatherv(
+        board->cells,
+        board->width * board->height,
+        MPI_INT32_T,
+        out_board ? out_board->cells : NULL,
+        worker_sizes,
+        displs,
+        MPI_INT32_T,
+        MANAGER_ID,
+        MPI_COMM_WORLD
       );
+      if (err != MPI_SUCCESS) {
+        fprintf(stderr, "MPI_Gatherv failed");
+        MPI_Abort(MPI_COMM_WORLD, err);
+      }
+
+      if (id == MANAGER_ID) {
+          PGM* pgm = PGM_from_board(out_board);
+          sprintf(filename, "%s/%d.pgm", output_directory, i);
+          PGM_write(pgm, filename);
+          PGM_destroy(pgm);
+      }
     }
 
     // notify other workers with our edge rows
@@ -145,15 +181,19 @@ void worker_run(
         board_get_row(feature_board, board->height - 1)
     );
 
-    // await manager request
-    MPI_Wait(&manager_request, MPI_STATUS_IGNORE);
-
     // swap boards
     Board* temp = board;
     board = feature_board;
     feature_board = temp;
   }
 
+  if (verbose) {
+    free(displs);
+    if (id == MANAGER_ID) {
+      board_destroy(out_board);
+      free(filename);
+    }
+  }
   board_destroy(feature_board);
   free(ghost_top);
   free(ghost_bottom);

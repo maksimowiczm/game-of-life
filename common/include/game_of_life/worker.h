@@ -18,7 +18,9 @@ void worker_run(
     WorkerType worker_type,
     Board* board,
     size_t iterations,
-    int verbose
+    int verbose,
+    char* output_directory,
+    int* worker_sizes
 );
 
 void worker_get_board_part(
