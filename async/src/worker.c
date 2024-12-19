@@ -71,22 +71,6 @@ void worker_run(
       );
     }
 
-    // evaluate inner rows
-    #pragma omp parallel for
-    for (int row = 1; row < board->height - 1; row++) {
-      const Cell* const previous_row = board_get_row(board, row - 1);
-      const Cell* const current_row = board_get_row(board, row);
-      const Cell* const next_row = board_get_row(board, row + 1);
-
-      evaluate_row(
-          current_row,
-          previous_row,
-          next_row,
-          board->width,
-          board_get_row(feature_board, row)
-      );
-    }
-
     // receive edge rows
     if (ghost_top != NULL) {
       MPI_Irecv(
@@ -108,6 +92,22 @@ void worker_run(
           id + 1,
           MPI_COMM_WORLD,
           &edge_requests[1]
+      );
+    }
+
+    // evaluate inner rows
+    #pragma omp parallel for
+    for (int row = 1; row < board->height - 1; row++) {
+      const Cell* const previous_row = board_get_row(board, row - 1);
+      const Cell* const current_row = board_get_row(board, row);
+      const Cell* const next_row = board_get_row(board, row + 1);
+
+      evaluate_row(
+          current_row,
+          previous_row,
+          next_row,
+          board->width,
+          board_get_row(feature_board, row)
       );
     }
 
